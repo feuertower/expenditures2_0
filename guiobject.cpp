@@ -36,7 +36,6 @@ guiObject::guiObject(QWidget *parent)
     m_mainVbox->setMargin(10);
 
     m_widget->setLayout(m_mainVbox);
-
     setCentralWidget(m_widget);
     setWindowTitle("Costs");
     resize(1000, 900);
@@ -59,20 +58,7 @@ guiObject::guiObject(QWidget *parent)
 
 guiObject::~guiObject()
 {
-    delete m_yearTabLayout;
-    delete m_yearWidget;
-    delete m_yearTable;
-    delete m_monthTabLayout;
-    delete m_monthWidget;
-    delete m_monthTable;
-    delete m_dayTabLayout;
-    delete m_dayWidget;
-    delete m_dayTable;
-    delete m_tabWidget;
-    delete m_spacerItem;
-    delete m_mainHbox;
-    delete m_mainVbox;
-    delete m_widget;
+
 }
 
 void guiObject::setMenuActions()
@@ -261,7 +247,7 @@ void guiObject::setFixedCosts()
         queryStr.append("\", \"");
         queryStr.append(e.description);
         queryStr.append("\", \"");
-        queryStr.append(QString::number(e.price));
+        queryStr.append(QString::number(static_cast<double>(e.price)));
         queryStr.append("\")");
 
         m_sqlDB->executeQuery(queryStr);
@@ -292,7 +278,7 @@ void guiObject::setCharts()
         chartFragment frag;
         QModelIndex indexName = model->index(i, 0, QModelIndex());
         QModelIndex indexCost = model->index(i, 1, QModelIndex());
-        frag.name = model->data(indexName).toString() + "(" + QString::number(model->data(indexCost).toFloat() / month, 'f', 2) + "€" + ")";
+        frag.name = model->data(indexName).toString() + "(" + QString::number(model->data(indexCost).toDouble() / month, 'f', 2) + "€" + ")";
         frag.value = model->data(indexCost).toFloat();
         pieVec.push_back(frag);
     }
@@ -331,7 +317,7 @@ QStandardItemModel *guiObject::getItemModel(QSqlQueryModel *model,
             QStandardItem* item;
             if(columnName == "Price")
             {
-                item = new QStandardItem(QString::number(model->data(index, Qt::DisplayRole).toFloat(), 'f', 2) + "€");
+                item = new QStandardItem(QString::number(model->data(index, Qt::DisplayRole).toDouble(), 'f', 2) + "€");
                 item->setTextAlignment(Qt::AlignRight);
             }
             else if(columnName == "Date")
@@ -370,7 +356,7 @@ QChartView *guiObject:: getPieChart(QString heading, std::vector<chartFragment> 
     m_pieSeries = new QPieSeries();
     for(auto addFrag : frag)
     {
-        m_pieSeries->append(addFrag.name, addFrag.value);
+        m_pieSeries->append(addFrag.name, static_cast<double>(addFrag.value));
     }
 
     int seriesSize = m_pieSeries->count();
@@ -502,9 +488,9 @@ void guiObject::actionSearch()
         qDebug() << queryData << endl;
         QSqlQuery* sqlData = m_sqlDB->executeQuery(queryData);
         sqlData->next();
-        sumLabel->setText("Gesamt: " + QString::number(sqlData->value(0).toFloat(), 'f', 2) + "€");
+        sumLabel->setText("Gesamt: " + QString::number(sqlData->value(0).toDouble(), 'f', 2) + "€");
         countLabel->setText("Einträge: " + sqlData->value(1).toString());
-        float average = sqlData->value(0).toFloat()/sqlData->value(1).toFloat();
+        double average = sqlData->value(0).toDouble()/sqlData->value(1).toDouble();
         averageLabel->setText("Durchschnitt: " + QString::number(average, 'f', 2) + "€");
 
         delete m_findDialog;

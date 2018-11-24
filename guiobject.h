@@ -49,7 +49,7 @@ class guiObject : public QMainWindow
 {
     Q_OBJECT
 public:
-    guiObject(QWidget *parent = 0);
+    guiObject(QWidget *parent = nullptr);
     ~guiObject();
 
 private:

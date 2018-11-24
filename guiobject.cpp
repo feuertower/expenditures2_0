@@ -28,8 +28,8 @@ guiObject::guiObject(QWidget *parent)
     m_tabWidget->addTab(m_monthWidget, tr("month"));
     m_tabWidget->addTab(m_yearWidget, tr("year"));
     m_tabWidget->addTab(m_charts, tr("charts"));
-    QObject::connect(m_tabWidget, &QTabWidget::tabBarClicked, this,
-                     guiObject::on_tabBarClicked);
+    connect(m_tabWidget, &QTabWidget::tabBarClicked,
+            this, &guiObject::on_tabBarClicked);
 
     m_mainHbox->addWidget(m_tabWidget);
     m_mainVbox->addLayout(m_mainHbox);
@@ -80,12 +80,12 @@ void guiObject::setMenuActions()
     m_actionNewEntry = new QAction(tr("&New Entry"), this);
     m_actionNewEntry->setShortcuts(QKeySequence::New);
     QObject::connect(m_actionNewEntry, &QAction::triggered, this,
-                     guiObject::actionNew);
+                     &guiObject::actionNew);
 
     m_actionSearchEntry = new QAction(tr("&Search Entry"), this);
     m_actionSearchEntry->setShortcut(QKeySequence::Find);
     QObject::connect(m_actionSearchEntry, &QAction::triggered, this,
-                     guiObject::actionSearch);
+                     &guiObject::actionSearch);
 
 }
 
@@ -156,7 +156,7 @@ void guiObject::showMonthTab()
     QList<QStandardItem*> itemList;
     QModelIndex index = model->index(0, 0, QModelIndex());
     QVariant var = model->data(index);
-    QStandardItem* item = new QStandardItem(QString::number(var.toFloat(), 'f', 2) + "€");
+    QStandardItem* item = new QStandardItem(QString::number(var.toDouble(), 'f', 2) + "€");
     itemList.append(item);
     item->setTextAlignment(Qt::AlignRight);
     itemModel->appendColumn(itemList);
@@ -237,14 +237,14 @@ void guiObject::keyPressEvent(QKeyEvent *keyEvent)
     }
 }
 
-bool guiObject::isNumber(QString s)
-{
-    bool result;
-    float tmp;
-    tmp = s.toFloat();
-    tmp != 0 ? result = false : result = true;
-    return result;
-}
+//bool guiObject::isNumber(QString s)
+//{
+//    bool result;
+//    float tmp;
+//    tmp = s.toFloat();
+//    tmp != 0 ? result = false : result = true;
+//    return result;
+//}
 
 void guiObject::setFixedCosts()
 {

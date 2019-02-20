@@ -2,6 +2,24 @@
 
 guiObject::guiObject(QWidget *parent)
 {
+    setupUi();
+
+    setFixedCosts();
+    setCharts();
+    //Show day tab after start
+    showDayTab();
+
+    backupDb();
+
+}
+
+guiObject::~guiObject()
+{
+
+}
+
+void guiObject::setupUi()
+{
     m_widget = new QWidget();
     m_mainHbox = new QHBoxLayout();
     m_mainVbox = new QVBoxLayout();
@@ -49,16 +67,64 @@ guiObject::guiObject(QWidget *parent)
     QString dbMsg = (m_sqlDB->openDb() == true) ? tr("DB connection succeed") :
                                                   tr("DB connection failed");
     statusBar()->showMessage(dbMsg);
-
-    setFixedCosts();
-    setCharts();
-    //Show day tab after start
-    showDayTab();
 }
 
-guiObject::~guiObject()
+void guiObject::backupDb()
 {
+    QString nameBackupDir = "backup";
+    QDate date = QDate::currentDate();
+    QDir dir(QDir::current());
+    QFile dbFile;
 
+    if(dir.cd("backup"))
+        qDebug() << "switched to backup";
+    else
+    {
+        dir.mkdir(nameBackupDir);
+        dir.cd(nameBackupDir);
+    }
+
+    QFileInfoList infoList = dir.entryInfoList();
+    bool needBackup = true;
+    for(auto info : infoList)
+    {
+        if(info.baseName() == "") continue; // skip hidden files
+
+        QDateTime fileDate = info.fileTime(QFileDevice::FileAccessTime);
+        int month = fileDate.date().month();
+        int year = fileDate.date().year();
+
+        if(month == date.month() && year == date.year()){
+            needBackup = false;
+            qDebug() << "no backup needed";
+        }
+    }
+
+    if(needBackup)
+    {
+        qDebug() << "do backup";
+        if(copyBackupFile())
+            qDebug() << "backup successful";
+        else
+            qDebug() << "Backup failed";
+    }
+
+}
+
+bool guiObject::copyBackupFile()
+{
+    bool backupSuccess = false;
+
+    QDir dir = QDir::current();
+    QDate date = QDate::currentDate();
+    QString copySrc = "ausgaben.db";
+    QString copyDst = dir.currentPath() + "/backup/ausgaben.db.backup_" +
+            QString::number(date.month()) + QString::number(date.year());
+
+    if(QFile::copy(copySrc, copyDst))
+        backupSuccess = true;
+
+    return backupSuccess;
 }
 
 void guiObject::setMenuActions()
@@ -605,23 +671,23 @@ void guiObject::changeDialog(QModelIndex index, QSqlQueryModel *model)
 
     QObject::connect(changeButton, &QPushButton::clicked,
                      [=](){
-       QString updateStr = "UPDATE Expenditures SET";
-       updateStr.append(" date = \"");
-       updateStr.append(dateEdit->date().toString("yyyy-MM-dd"));
-       updateStr.append("\", categorie = \"");
-       updateStr.append(QString::number(comboBoxCategory->currentIndex()+1));
-       updateStr.append("\", description = \"");
-       updateStr.append(lineEditDesc->text());
-       updateStr.append("\", price = \"");
-       updateStr.append(lineEditPrice->text());
-       updateStr.append("\" WHERE id = ");
-       updateStr.append(id);
+        QString updateStr = "UPDATE Expenditures SET";
+        updateStr.append(" date = \"");
+        updateStr.append(dateEdit->date().toString("yyyy-MM-dd"));
+        updateStr.append("\", categorie = \"");
+        updateStr.append(QString::number(comboBoxCategory->currentIndex()+1));
+        updateStr.append("\", description = \"");
+        updateStr.append(lineEditDesc->text());
+        updateStr.append("\", price = \"");
+        updateStr.append(lineEditPrice->text());
+        updateStr.append("\" WHERE id = ");
+        updateStr.append(id);
 
-       qDebug() << updateStr << endl;
-       m_sqlDB->executeQuery(updateStr);
+        qDebug() << updateStr << endl;
+        m_sqlDB->executeQuery(updateStr);
 
-       showDayTab();
-       delete dialog;
+        showDayTab();
+        delete dialog;
     });
 
 }

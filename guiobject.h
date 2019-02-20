@@ -53,6 +53,9 @@ public:
     ~guiObject();
 
 private:
+    void setupUi();
+    void backupDb();
+    bool copyBackupFile();
     void setMenuActions();
     void showDayTab();
     void showMonthTab();

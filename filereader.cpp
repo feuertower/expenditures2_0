@@ -28,7 +28,7 @@ std::vector<entry> fileReader::readFile(QString fileName)
             QStringList daten = streamRead.readLine().split(";");
             e.date = daten[0];
 
-            if(e.date == "#" || e.date == NULL) continue;
+            if(e.date == "#" || e.date == nullptr) continue;
 
             QDate lastDate = QDate::fromString(e.date, "dd.MM.yyyy");
             e.date = lastDate.toString("yyyy-MM-dd");
